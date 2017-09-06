@@ -1,66 +1,53 @@
-pragma solidity ^0.4.4;
+pragma solidity ^0.4.11;
 
-
-import './Shareable.sol';
-
-
-/*
- * DayLimit
- *
- * inheritable "property" contract that enables methods to be protected by placing a linear limit (specifiable)
- * on a particular resource per calendar day. is multiowned to allow the limit to be altered. resource that method
- * uses is specified in the modifier.
+/**
+ * @title DayLimit
+ * @dev Base contract that enables methods to be protected by placing a linear limit (specifiable)
+ * on a particular resource per calendar day. Is multiowned to allow the limit to be altered.
  */
-contract DayLimit is Shareable {
-  // FIELDS
+contract DayLimit {
 
-  uint public dailyLimit;
-  uint public spentToday;
-  uint public lastDay;
+  uint256 public dailyLimit;
+  uint256 public spentToday;
+  uint256 public lastDay;
 
-
-  // MODIFIERS
-
-  // simple modifier for daily limit.
-  modifier limitedDaily(uint _value) {
-    if (underLimit(_value))
-      _;
-  }
-
-
-  // CONSTRUCTOR
-  // stores initial daily limit and records the present day's index.
-  function DayLimit(uint _limit) {
+  /**
+   * @dev Constructor that sets the passed value as a dailyLimit.
+   * @param _limit uint256 to represent the daily limit.
+   */
+  function DayLimit(uint256 _limit) {
     dailyLimit = _limit;
     lastDay = today();
   }
 
-
-  // METHODS
-
-  // (re)sets the daily limit. needs many of the owners to confirm. doesn't alter the amount already spent today.
-  function setDailyLimit(uint _newLimit) onlymanyowners(sha3(msg.data)) external {
+  /**
+   * @dev sets the daily limit. Does not alter the amount already spent today.
+   * @param _newLimit uint256 to represent the new limit.
+   */
+  function _setDailyLimit(uint256 _newLimit) internal {
     dailyLimit = _newLimit;
   }
 
-  // resets the amount already spent today. needs many of the owners to confirm
-  function resetSpentToday() onlymanyowners(sha3(msg.data)) external {
+  /**
+   * @dev Resets the amount already spent today.
+   */
+  function _resetSpentToday() internal {
     spentToday = 0;
   }
 
-
-  // INTERNAL METHODS
-
-  // checks to see if there is at least `_value` left from the daily limit today. if there is, subtracts it and
-  // returns true. otherwise just returns false.
-  function underLimit(uint _value) internal onlyOwner returns (bool) {
+  /**
+   * @dev Checks to see if there is enough resource to spend today. If true, the resource may be expended.
+   * @param _value uint256 representing the amount of resource to spend.
+   * @return A boolean that is True if the resource was spended and false otherwise.
+   */
+  function underLimit(uint256 _value) internal returns (bool) {
     // reset the spend limit if we're on a different day to last time.
     if (today() > lastDay) {
       spentToday = 0;
       lastDay = today();
     }
     // check to see if there's enough left - if so, subtract and return true.
-    // overflow protection                    // dailyLimit check  
+    // overflow protection                    // dailyLimit check
     if (spentToday + _value >= spentToday && spentToday + _value <= dailyLimit) {
       spentToday += _value;
       return true;
@@ -68,8 +55,19 @@ contract DayLimit is Shareable {
     return false;
   }
 
-  // determines today's index.
-  function today() private constant returns (uint) {
+  /**
+   * @dev Private function to determine today's index
+   * @return uint256 of today's index.
+   */
+  function today() private constant returns (uint256) {
     return now / 1 days;
+  }
+
+  /**
+   * @dev Simple modifier for daily limit.
+   */
+  modifier limitedDaily(uint256 _value) {
+    require(underLimit(_value));
+    _;
   }
 }

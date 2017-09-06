@@ -1,4 +1,5 @@
 const assertJump = require('./helpers/assertJump');
+var SafeMathMock = artifacts.require("./helpers/SafeMathMock.sol");
 
 contract('SafeMath', function(accounts) {
 
@@ -39,6 +40,7 @@ contract('SafeMath', function(accounts) {
     let b = 5678;
     try {
       let subtract = await safeMath.subtract(a, b);
+      assert.fail('should have thrown before');
     } catch(error) {
       assertJump(error);
     }
@@ -49,6 +51,7 @@ contract('SafeMath', function(accounts) {
     let b = 1;
     try {
       let add = await safeMath.add(a, b);
+      assert.fail('should have thrown before');
     } catch(error) {
       assertJump(error);
     }
@@ -59,6 +62,7 @@ contract('SafeMath', function(accounts) {
     let b = 2;
     try {
       let multiply = await safeMath.multiply(a, b);
+      assert.fail('should have thrown before');
     } catch(error) {
       assertJump(error);
     }

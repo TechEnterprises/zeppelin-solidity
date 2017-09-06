@@ -1,12 +1,17 @@
 dist: trusty
-sudo: false
+sudo: required
 group: beta
 language: node_js
 node_js:
   - "6"
-before_install:
-  - npm i -g ethereumjs-testrpc
-  - npm i -g truffle
+cache:
+  yarn: true
+env:
+  -
+  - SOLIDITY_COVERAGE=true
+matrix:
+  fast_finish: true
+  allow_failures:
+    - env: SOLIDITY_COVERAGE=true
 script:
-  - testrpc&
-  - npm test
+  - yarn test
